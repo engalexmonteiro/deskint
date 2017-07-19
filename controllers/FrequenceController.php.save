@@ -1,0 +1,184 @@
+<?php
+
+namespace app\controllers;
+
+use Yii;
+use app\models\Frequence;
+use app\models\FrequenceSearch;
+use app\models\Users;
+use app\models\Classroom;
+use yii\helpers\ArrayHelper;
+use yii\web\Controller;
+use yii\web\NotFoundHttpException;
+use yii\filters\VerbFilter;
+
+/**
+ * FrequenceController implements the CRUD actions for Frequence model.
+ */
+class FrequenceController extends Controller
+{
+    /**
+     * @inheritdoc
+     */
+    public function behaviors()
+    {
+        return [
+            'verbs' => [
+                'class' => VerbFilter::className(),
+                'actions' => [
+                    'delete' => ['POST'],
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Lists all Frequence models.
+     * @return mixed
+     */
+    public function actionIndex()
+    {
+        $searchModel = new FrequenceSearch();
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+
+        return $this->render('index', [
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider,
+        ]);
+    }
+
+    /**
+     * Displays a single Frequence model.
+     * @param integer $id
+     * @return mixed
+     */
+    public function actionView($id)
+    {
+        return $this->render('view', [
+            'model' => $this->findModel($id),
+        ]);
+    }
+
+    /**
+     * Creates a new Frequence model.
+     * If creation is successful, the browser will be redirected to the 'view' page.
+     * @return mixed
+     */
+    public function actionCreate()
+    {
+        $model = new Frequence();
+	$users = Users::find()->all();
+        $array_users = ArrayHelper::map($users,"id","name");
+
+	$classrooms = Classroom::find()->all();
+        $array_classroom = ArrayHelper::map($classrooms,"id","name");
+
+        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+            return $this->redirect(['view', 'id' => $model->id]);
+        } else {
+            return $this->render('create', [
+                'model' => $model,
+		'array_users' => $array_users,
+		'array_classroom' => $array_classroom,
+            ]);
+        }
+    }
+
+    public function actionRegisterFrequence($idcard) {
+
+	$checkin=false;
+	$timecheckin=null;
+	$timecheckintolerance=15;
+
+	if ($idcard != NULL){
+		$user = Users::find()->where(['idcard' => $idcard])->one();
+
+		if ($user != NULL){
+
+			if($user->profile == "professor"){
+
+				if($checkin == FALSE){
+				    $timecheckin=time();
+				    $checkin=true;
+				}
+				else
+				   checkin=false;									
+			}else{
+			 	if($user->profile == "student"){
+					                                					
+                                  if(checkin == true)	{
+					$currentime = time();
+
+					if($currentime < $timecheckin + $tolerance)
+						recordFrequence($idcard);
+				  }
+                                }
+				
+                                
+
+			}
+		}else 
+	  		echo "invalid idcard";
+	}
+
+	
+
+        return $this->render('frequencestatus',['idcard'=>$codigo2,'checkf' => $checkf]);
+    }
+
+
+    /**
+     * Updates an existing Frequence model.
+     * If update is successful, the browser will be redirected to the 'view' page.
+     * @param integer $id
+     * @return mixed
+     */
+    public function actionUpdate($id)
+    {
+        $model = $this->findModel($id);
+	$users = Users::find()->all();
+        $array_users = ArrayHelper::map($users,"id","name");
+
+        $classrooms = Classroom::find()->all();
+        $array_classroom = ArrayHelper::map($classrooms,"id","name");
+
+        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+            return $this->redirect(['view', 'id' => $model->id]);
+        } else {
+            return $this->render('update', [
+                'model' => $model,
+		'array_users' => $array_users,
+                'array_classroom' => $array_classroom,
+            ]);
+        }
+    }
+
+    /**
+     * Deletes an existing Frequence model.
+     * If deletion is successful, the browser will be redirected to the 'index' page.
+     * @param integer $id
+     * @return mixed
+     */
+    public function actionDelete($id)
+    {
+        $this->findModel($id)->delete();
+
+        return $this->redirect(['index']);
+    }
+
+    /**
+     * Finds the Frequence model based on its primary key value.
+     * If the model is not found, a 404 HTTP exception will be thrown.
+     * @param integer $id
+     * @return Frequence the loaded model
+     * @throws NotFoundHttpException if the model cannot be found
+     */
+    protected function findModel($id)
+    {
+        if (($model = Frequence::findOne($id)) !== null) {
+            return $model;
+        } else {
+            throw new NotFoundHttpException('The requested page does not exist.');
+        }
+    }
+}
